@@ -7,4 +7,10 @@
 **/.ipynb_checkpoints/
 **/.virtual_documents/
 # You might also want to ignore other temporary files if needed
+# GUI-specific stuff
+.idea/
+
+*.iml
+*.ipr
+*.iws
 
