@@ -3,6 +3,7 @@ import sys
 import numpy
 import pandas
 import matplotlib.pyplot as pyplot
+import seaborn
 
 """
     Pull the dataset from .csv file
@@ -116,6 +117,7 @@ def plot_seasonal_wind_speed(city_entry_1: tuple, city_entry_2: tuple):
     Plots wind directions on a polar plot
 """
 def plot_wind_direction(input_dataset: pandas.DataFrame, city: str):
+    seaborn.set_theme(style="whitegrid")
     """
         Wind direction is calculated by finding the angle between horizontal axis and the vector
     """
@@ -133,9 +135,17 @@ def plot_wind_direction(input_dataset: pandas.DataFrame, city: str):
     theta = numpy.deg2rad(bins[:-1] + 11.25)  # center of each bin
     widths = numpy.deg2rad([22.5] * len(theta))
 
-    (pyplot.subplot(111, polar=True)
-     .bar(theta, counts, width=widths, bottom=0.0, edgecolor='gray', align='center'))
-    pyplot.title(f"{city} Wind Direction")
+    # Create a polar plot
+    fig, ax = pyplot.subplots(subplot_kw={'projection': 'polar'})
+
+    # Use a Seaborn color palette for the bars
+    colors = seaborn.color_palette("husl", len(theta))
+
+    ax.bar(theta, counts, width=widths, bottom=0.0, edgecolor='gray',
+           align='center', color=colors)
+
+    # Set the title and adjust its position
+    ax.set_title(f"{city} Wind Direction", va='bottom')
     pyplot.show()
 
 def display_menu():
