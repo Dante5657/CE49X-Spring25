@@ -91,7 +91,6 @@ def plot_monthly_wind_speed(city_entry_1: tuple, city_entry_2: tuple):
     pyplot.ylabel("Average Wind Speed (m/s)")
     pyplot.title("Monthly Average Wind Speeds")
     pyplot.grid(True)
-    pyplot.tight_layout()
     pyplot.legend([city_entry_1[0], city_entry_2[0]], loc="upper left")
     pyplot.plot(city_entry_1[1].index, city_entry_1[1].values, label=city_entry_1[0], marker='o')
     pyplot.plot(city_entry_2[1].index, city_entry_2[1].values, label=city_entry_2[0], marker='s')
@@ -108,7 +107,6 @@ def plot_seasonal_wind_speed(city_entry_1: tuple, city_entry_2: tuple):
     pyplot.title("Seasonal Average Wind Speeds")
     pyplot.xticks(numpy.arange(len(city_entry_1[1])), city_entry_1[1].keys())
     pyplot.grid(True)
-    pyplot.tight_layout()
     pyplot.legend([city_entry_1[0], city_entry_2[0]], loc="upper right")
     pyplot.bar(numpy.arange(len(city_entry_1[1])) - 0.2, city_entry_1[1].values, 0.4, label=city_entry_1[0])
     pyplot.bar(numpy.arange(len(city_entry_1[1])) + 0.2, city_entry_2[1].values, 0.4, label=city_entry_2[0])
@@ -135,10 +133,9 @@ def plot_wind_direction(input_dataset: pandas.DataFrame, city: str):
     theta = numpy.deg2rad(bins[:-1] + 11.25)  # center of each bin
     widths = numpy.deg2rad([22.5] * len(theta))
 
-    pyplot.tight_layout()
     (pyplot.subplot(111, polar=True)
      .bar(theta, counts, width=widths, bottom=0.0, edgecolor='gray', align='center'))
-    pyplot.title(f"Wind Direction in {city}")
+    pyplot.title(f"{city} Wind Direction")
     pyplot.show()
 
 def display_menu():
