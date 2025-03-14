@@ -282,7 +282,6 @@ def util_get_season(input_datetime, north_hemisphere: bool = True):
 if __name__ == "__main__":
     main()
 
-
 """
 Skyrim makes it possible to run large weather models on a common GPU rather than depending on extremely high-end costly setups. 
 It also accommodates cloud-based (Modal) and on-prem GPU configurations, easing forecasting and saving costs. 
