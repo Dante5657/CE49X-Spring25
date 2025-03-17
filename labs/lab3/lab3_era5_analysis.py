@@ -114,7 +114,7 @@ def plot_seasonal_wind_speed(city_entry_1: tuple, city_entry_2: tuple):
     pyplot.show()
 
 """
-    Plots wind directions on a polar plot
+    Plots wind directions on a polar plot (ret)
 """
 def plot_wind_direction(input_dataset: pandas.DataFrame, city: str):
     seaborn.set_theme(style="whitegrid")
