@@ -8,3 +8,11 @@
 **/.virtual_documents/
 # You might also want to ignore other temporary files if needed
 
+labs/final_project/src/__pycache__/calculations.cpython-312.pyc
+labs/final_project/src/__pycache__/data_input.cpython-312.pyc
+.gitignore
+labs/final_project/tests/__pycache__/test_calculations.cpython-312-pytest-8.4.0.pyc
+labs/final_project/tests/__pycache__/test_data_input.cpython-312-pytest-8.4.0.pyc
+labs/final_project/tests/__pycache__/test_visualization.cpython-312-pytest-8.4.0.pyc
+labs/final_project/src/__pycache__/visualization.cpython-312.pyc
+.vscode/settings.json

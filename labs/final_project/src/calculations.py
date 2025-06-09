@@ -7,6 +7,8 @@ import pandas as pd
 import numpy as np
 from typing import Dict, List, Union
 from pathlib import Path
+from src.utils import convert_units
+
 
 class LCACalculator:
     def __init__(self, impact_factors_path: Union[str, Path] = None):
@@ -41,11 +43,21 @@ class LCACalculator:
             stage = row['life_cycle_stage'].lower()
             quantity = row['quantity_kg']
             
-            # Get impact factors for the material and stage
+            "Get impact factors for the material and stage"
             material_factors = self.impact_factors.get(material, {})
             stage_factors = material_factors.get(stage, {})
             
-            # Calculate impacts using both direct measurements and impact factors
+            """
+            For the energy calculation, we first convert the process energy from kWh to MJ
+            to ensure the units are consistent before adding them together.
+            """
+            process_energy_mj = convert_units(row['energy_consumption_kwh'], from_unit='kWh', to_unit='MJ')
+
+            """
+            The calculation logic is updated here to prevent adding up sample_data and calculations.
+            Carbon and water impacts are now calculated purely from material quantity and impact factors.
+            The original values in the input CSV for these are ignored.
+            """
             impacts = {
                 'product_id': row['product_id'],
                 'product_name': row['product_name'],
@@ -53,26 +65,26 @@ class LCACalculator:
                 'material_type': material,
                 'quantity_kg': quantity,
                 
-                # Direct measurements from data
+                "Direct measurements from data"
                 'energy_consumption_kwh': row['energy_consumption_kwh'],
                 'transport_distance_km': row['transport_distance_km'],
                 'waste_generated_kg': row['waste_generated_kg'],
                 
-                # Calculated impacts using impact factors
-                'carbon_impact': (
-                    quantity * stage_factors.get('carbon_impact', 0) +
-                    row['carbon_footprint_kg_co2e']
-                ),
+                """
+                # Calculated impacts using impact factors.
+                # Note the removal of the "+ row['...']" to fix the issue stated above.
+                """
+                'carbon_impact': quantity * stage_factors.get('carbon_impact', 0),
+                
+                "The energy_impact now correctly sums values in the same unit (MJ)."
                 'energy_impact': (
                     quantity * stage_factors.get('energy_impact', 0) +
-                    row['energy_consumption_kwh']
+                    process_energy_mj
                 ),
-                'water_impact': (
-                    quantity * stage_factors.get('water_impact', 0) +
-                    row['water_usage_liters']
-                ),
+
+                'water_impact': quantity * stage_factors.get('water_impact', 0),
                 
-                # End-of-life management
+                "End-of-life management"
                 'recycling_rate': row['recycling_rate'],
                 'landfill_rate': row['landfill_rate'],
                 'incineration_rate': row['incineration_rate']
@@ -80,6 +92,7 @@ class LCACalculator:
             results.append(impacts)
             
         return pd.DataFrame(results)
+
     
     def calculate_total_impacts(self, impacts: pd.DataFrame) -> pd.DataFrame:
         """

@@ -11,7 +11,7 @@ import numpy as np
 
 class LCAVisualizer:
     def __init__(self):
-        plt.style.use('seaborn')
+        sns.set_theme()
         self.colors = sns.color_palette("husl", 8)
         self.impact_labels = {
             'carbon_impact': 'Carbon Impact (kg CO2e)',
@@ -134,7 +134,7 @@ class LCAVisualizer:
     def plot_end_of_life_breakdown(self, data: pd.DataFrame, 
                                  product_id: str) -> plt.Figure:
         """
-        Create a stacked bar chart showing end-of-life management breakdown.
+        Create a stacked bar chart showing end-of-life management for each material in a product.
         
         Args:
             data: DataFrame with impact data
@@ -143,21 +143,51 @@ class LCAVisualizer:
         Returns:
             matplotlib Figure object
         """
-        product_data = data[data['product_id'] == product_id]
+
+        """
+        We first modify the data to get only the 'end-of-life' stage for the selected product.
+        This prevents plotting misleading data from other life cycle stages.
+        """
+        product_eol_data = data[
+            (data['product_id'] == product_id) & 
+            (data['life_cycle_stage'] == 'end-of-life')
+        ].copy()
+
+        """
+        We set the material_type as the index to use it for the x-axis labels,
+        which makes the chart much easier to understand.
+        """
+        product_eol_data.set_index('material_type', inplace=True)
         
         fig, ax = plt.subplots(figsize=(10, 6))
         
-        eol_data = product_data[['recycling_rate', 'landfill_rate', 'incineration_rate']]
-        eol_data.plot(kind='bar', stacked=True, ax=ax, 
-                     color=['green', 'red', 'orange'])
+        eol_data_to_plot = product_eol_data[['recycling_rate', 'landfill_rate', 'incineration_rate']]
+        
+        "We check if there is data to plot to avoid errors if a product has no 'end-of-life' data."
+        if eol_data_to_plot.empty:
+            ax.text(0.5, 0.5, 'No End-of-Life data available for this product.', 
+                    horizontalalignment='center', verticalalignment='center',
+                    transform=ax.transAxes)
+            ax.set_title(f'End-of-Life Management for Product {product_id}')
+            return fig
+
+        eol_data_to_plot.plot(kind='bar', stacked=True, ax=ax, 
+                              color=['#2ca02c', '#d62728', '#ff7f0e']) # Green, Red, Orange
         
         ax.set_title(f'End-of-Life Management for Product {product_id}')
-        ax.set_xlabel('Life Cycle Stage')
-        ax.set_ylabel('Rate')
+        ax.set_xlabel('Material Type')
+        ax.set_ylabel('Rate (Proportion)')
         ax.set_ylim(0, 1)
-        plt.xticks(rotation=45)
+        ax.legend(["Recycling", "Landfill", "Incineration"])
+        plt.xticks(rotation=0) # Keep labels horizontal for readability
         
+        "Add percentage labels to each section of the stacked bars for clarity"
+        for container in ax.containers:
+            ax.bar_label(container, fmt='{:,.0%}', label_type='center')
+
+        plt.tight_layout()
         return fig
+
     
     def plot_impact_correlation(self, data: pd.DataFrame) -> plt.Figure:
         """
