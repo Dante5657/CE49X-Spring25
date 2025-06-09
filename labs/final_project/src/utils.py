@@ -28,7 +28,7 @@ UNIT_CONVERSIONS = {
 
 def convert_units(value: float, from_unit: str, to_unit: str) -> float:
     """
-    Convert values between different units.
+    Convert values between different units using a two-step base conversion.
     
     Args:
         value: Value to convert
@@ -39,27 +39,44 @@ def convert_units(value: float, from_unit: str, to_unit: str) -> float:
         Converted value
         
     Raises:
-        ValueError: If units are not supported
+        ValueError: If units are not supported or are from different categories
     """
-    # Find the base unit for the conversion
-    base_unit = None
-    for base, conversions in UNIT_CONVERSIONS.items():
-        if from_unit in conversions or to_unit in conversions:
-            base_unit = base
-            break
+    if from_unit == to_unit:
+        return value
+
+    from_base_unit = None
+    to_base_unit = None
+
+    """
+    Find the base unit category for both the 'from' and 'to' units.
+    This is necessary to ensure we are not trying to convert between incompatible types (e.g., kg to L).
+    """
+    for base_unit, conversions in UNIT_CONVERSIONS.items():
+        if from_unit == base_unit or from_unit in conversions:
+            from_base_unit = base_unit
+        if to_unit == base_unit or to_unit in conversions:
+            to_base_unit = base_unit
+
+    if not from_base_unit or not to_base_unit:
+        raise ValueError(f"Unsupported unit provided: {from_unit} or {to_unit}")
+
+    if from_base_unit != to_base_unit:
+        raise ValueError(f"Cannot convert between different unit types: {from_unit} to {to_unit}")
     
-    if not base_unit:
-        raise ValueError(f"Unsupported units: {from_unit} or {to_unit}")
-    
-    # Convert to base unit
-    if from_unit != base_unit:
-        value = value / UNIT_CONVERSIONS[base_unit][from_unit]
-    
-    # Convert from base unit to target unit
-    if to_unit != base_unit:
-        value = value * UNIT_CONVERSIONS[base_unit][to_unit]
-    
-    return value
+    "Convert the initial value TO the base unit of its category."
+    value_in_base_unit = value
+    if from_unit != from_base_unit:
+        "We divide when converting from a smaller unit to the larger base unit."
+        value_in_base_unit = value / UNIT_CONVERSIONS[from_base_unit][from_unit]
+
+    "Convert the value FROM the base unit TO the target unit."
+    final_value = value_in_base_unit
+    if to_unit != from_base_unit:
+        "We multiply when converting from the larger base unit to a smaller unit."
+        final_value = value_in_base_unit * UNIT_CONVERSIONS[from_base_unit][to_unit]
+        
+    return final_value
+
 
 def save_results(data: pd.DataFrame, file_path: Union[str, Path], 
                 format: str = 'csv') -> None:
