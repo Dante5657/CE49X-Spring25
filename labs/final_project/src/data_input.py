@@ -81,13 +81,13 @@ class DataInput:
         
     def read_impact_factors(self, file_path: Union[str, Path]) -> Dict:
         """
-        Read impact factors from JSON file.
+        Read impact factors from JSON file and standardize stage names.
         
         Args:
             file_path: Path to the impact factors JSON file
             
         Returns:
-            Dictionary containing impact factors
+            Dictionary containing impact factors with standardized keys.
             
         Raises:
             FileNotFoundError: If file does not exist
@@ -102,5 +102,14 @@ class DataInput:
             
         with open(file_path, 'r') as f:
             impact_factors = json.load(f)
+
+        """
+        In order to standardize the data a bit more. The 'disposal'
+        Key in impact_factors.json is converted into end-of-life so that
+        it fits the rest of the data structure
+        """
+        for material, stages in impact_factors.items():
+            if 'disposal' in stages:
+                stages['end-of-life'] = stages.pop('disposal')
             
-        return impact_factors 
+        return impact_factors
