@@ -85,6 +85,7 @@ def test_validate_data(sample_data):
     """Test data validation."""
     data_input = DataInput()
     
+    
     # Test valid data
     assert data_input.validate_data(sample_data)
     
@@ -103,6 +104,7 @@ def test_validate_data(sample_data):
     invalid_data.loc[0, 'landfill_rate'] = 0.6
     invalid_data.loc[0, 'incineration_rate'] = 0.6
     assert not data_input.validate_data(invalid_data)
+    
 
 def test_read_impact_factors(sample_impact_factors, tmp_path):
     """Test reading impact factors."""

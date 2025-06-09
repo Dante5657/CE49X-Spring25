@@ -72,9 +72,16 @@ class DataInput:
             if not pd.to_numeric(data[col], errors='coerce').notnull().all():
                 return False
                 
-        # Validate rates sum to 1
+        """
+        Validate rates sum to 1
+        Filter out rows where 'life_cycle_stage' is 'Transportation' (case-sensitive),
+        Since rightfully during transportation rates are meaningless
+        """
+        data_for_rate_check = data[data['life_cycle_stage'] != 'Transportation']
+
         rate_columns = ['recycling_rate', 'landfill_rate', 'incineration_rate']
-        if not (data[rate_columns].sum(axis=1) - 1).abs().lt(0.001).all():
+        # Perform the rate sum validation on the filtered data
+        if not (data_for_rate_check[rate_columns].sum(axis=1) - 1).abs().lt(0.001).all():
             return False
             
         return True

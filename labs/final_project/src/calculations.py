@@ -26,72 +26,60 @@ class LCACalculator:
         data_input = DataInput()
         return data_input.read_impact_factors(file_path)
     
-    def calculate_impacts(self, data: pd.DataFrame) -> pd.DataFrame:
-        """
-        Calculate environmental impacts for each product and life cycle stage.
+def calculate_impacts(self, data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Calculate environmental impacts for each product and life cycle stage.
+    
+    Args:
+        data: DataFrame containing product data
         
-        Args:
-            data: DataFrame containing product data
-            
-        Returns:
-            DataFrame with calculated impacts
-        """
-        results = []
-        
-        for _, row in data.iterrows():
-            material = row['material_type'].lower()
-            stage = row['life_cycle_stage'].lower()
-            quantity = row['quantity_kg']
-            
-            "Get impact factors for the material and stage"
-            material_factors = self.impact_factors.get(material, {})
-            stage_factors = material_factors.get(stage, {})
-            
-            """
-            For the energy calculation, we first convert the process energy from kWh to MJ
-            to ensure the units are consistent before adding them together.
-            """
-            process_energy_mj = convert_units(row['energy_consumption_kwh'], from_unit='kWh', to_unit='MJ')
+    Returns:
+        DataFrame with calculated impacts
+    """
+    results = []
 
-            """
-            The calculation logic is updated here to prevent adding up sample_data and calculations.
-            Carbon and water impacts are now calculated purely from material quantity and impact factors.
-            The original values in the input CSV for these are ignored.
-            """
-            impacts = {
-                'product_id': row['product_id'],
-                'product_name': row['product_name'],
-                'life_cycle_stage': stage,
-                'material_type': material,
-                'quantity_kg': quantity,
-                
-                "Direct measurements from data"
-                'energy_consumption_kwh': row['energy_consumption_kwh'],
-                'transport_distance_km': row['transport_distance_km'],
-                'waste_generated_kg': row['waste_generated_kg'],
-                
-                """
-                # Calculated impacts using impact factors.
-                # Note the removal of the "+ row['...']" to fix the issue stated above.
-                """
-                'carbon_impact': quantity * stage_factors.get('carbon_impact', 0),
-                
-                "The energy_impact now correctly sums values in the same unit (MJ)."
-                'energy_impact': (
-                    quantity * stage_factors.get('energy_impact', 0) +
-                    process_energy_mj
-                ),
+    for _, row in data.iterrows():
+        material = row['material_type'].lower()
+        stage = row['life_cycle_stage'].lower()
+        quantity = row['quantity_kg']
 
-                'water_impact': quantity * stage_factors.get('water_impact', 0),
-                
-                "End-of-life management"
-                'recycling_rate': row['recycling_rate'],
-                'landfill_rate': row['landfill_rate'],
-                'incineration_rate': row['incineration_rate']
-            }
-            results.append(impacts)
-            
-        return pd.DataFrame(results)
+        # Get impact factors for the material and stage
+        material_factors = self.impact_factors.get(material, {})
+        stage_factors = material_factors.get(stage, {})
+
+        # Convert kWh to MJ for energy comparison
+        process_energy_mj = convert_units(row['energy_consumption_kwh'], from_unit='kWh', to_unit='MJ')
+
+        # Build the impacts dictionary
+        impacts = {
+            'product_id': row['product_id'],
+            'product_name': row['product_name'],
+            'life_cycle_stage': stage,
+            'material_type': material,
+            'quantity_kg': quantity,
+
+            # Direct measurements from data
+            'energy_consumption_kwh': row['energy_consumption_kwh'],
+            'transport_distance_km': row['transport_distance_km'],
+            'waste_generated_kg': row['waste_generated_kg'],
+
+            # Calculated impacts using impact factors
+            'carbon_impact': quantity * stage_factors.get('carbon_impact', 0),
+
+            # Sum of impact factor energy and process energy (converted to MJ)
+            'energy_impact': quantity * stage_factors.get('energy_impact', 0) + process_energy_mj,
+
+            'water_impact': quantity * stage_factors.get('water_impact', 0),
+
+            # End-of-life management data
+            'recycling_rate': row['recycling_rate'],
+            'landfill_rate': row['landfill_rate'],
+            'incineration_rate': row['incineration_rate'],
+        }
+
+        results.append(impacts)
+
+    return pd.DataFrame(results)
 
     
     def calculate_total_impacts(self, impacts: pd.DataFrame) -> pd.DataFrame:
