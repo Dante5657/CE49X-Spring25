@@ -56,7 +56,10 @@ def main():
                 continue
             try:
                 impacts = calculator.calculate_impacts(product_data)
-                print("✔️ Impacts calculated.")
+                print("Impacts calculated. Here is a summary:")
+                summary_cols = ['product_id', 'life_cycle_stage', 'material_type',
+                                'carbon_impact', 'energy_impact', 'water_impact']
+                print(impacts[summary_cols].head(10).to_string(index=False))
             except Exception as e:
                 print(f"❌ Error calculating impacts: {e}")
 
