@@ -130,22 +130,38 @@ class LCACalculator:
     
     def compare_alternatives(self, impacts: pd.DataFrame, product_ids: List[str]) -> pd.DataFrame:
         """
-        Compare environmental impacts between alternative products.
+        Compare environmental impacts between alternative products by first
+        aggregating their total impacts across all life-cycle stages.
         
         Args:
-            impacts: DataFrame with calculated impacts
+            impacts: DataFrame with calculated impacts per life-cycle stage
             product_ids: List of product IDs to compare
             
         Returns:
             DataFrame with comparison results
         """
-        comparison = impacts[impacts['product_id'].isin(product_ids)].copy()
+
+        # 1. Filter the detailed impacts to only include the products for comparison.
+        comparison_data = impacts[impacts['product_id'].isin(product_ids)]
         
-        # Calculate relative differences
+        # 2. Aggregate the filtered data to get the total impacts for each product.
+        #    This ensures we have one row per product for comparison.
+        comparison = self.calculate_total_impacts(comparison_data)
+        
+        # --- MODIFICATION END ---
+
+        # Calculate relative differences (with protection against division by zero)
         for impact_type in ['carbon_impact', 'energy_impact', 'water_impact']:
             min_value = comparison[impact_type].min()
-            comparison[f'{impact_type}_relative'] = (
-                (comparison[impact_type] - min_value) / min_value * 100
-            )
             
-        return comparison 
+            # Avoid division by zero if the minimum impact is 0
+            if min_value > 0:
+                comparison[f'{impact_type}_relative'] = (
+                    (comparison[impact_type] - min_value) / min_value * 100
+                )
+            else:
+                # If baseline is 0, relative difference isn't meaningful in the same way.
+                # You can set it to 0.0 or another indicator.
+                comparison[f'{impact_type}_relative'] = 0.0
+            
+        return comparison
