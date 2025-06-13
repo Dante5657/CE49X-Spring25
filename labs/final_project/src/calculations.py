@@ -64,15 +64,17 @@ class LCACalculator:
                 'quantity_kg': quantity,
 
                 # Direct measurements from data
-                'energy_consumption_kwh': row['energy_consumption_kwh'],
+                'energy_consumption_mj': convert_units(row['energy_consumption_kwh'], from_unit='kWh', to_unit='MJ'),
+                'carbon_footprint_kg_co2e': row['carbon_footprint_kg_co2e'],
+                'water_usage_liters': convert_units(row['water_usage_liters'], from_unit='m3', to_unit='L'),
+
                 'transport_distance_km': row['transport_distance_km'],
                 'waste_generated_kg': row['waste_generated_kg'],
 
                 # Calculated impacts using impact factors
                 'carbon_impact': quantity * stage_factors.get('carbon_impact', 0),
 
-                # Sum of impact factor energy and process energy (converted to MJ)
-                'energy_impact': quantity * stage_factors.get('energy_impact', 0) + process_energy_mj,
+                'energy_impact': quantity * stage_factors.get('energy_impact', 0),
 
                 'water_impact': quantity * stage_factors.get('water_impact', 0),
 
@@ -100,9 +102,15 @@ class LCACalculator:
         # Group by product and sum impacts
         total_impacts = impacts.groupby(['product_id', 'product_name']).agg({
             'carbon_impact': 'sum',
+            'carbon_footprint_kg_co2e': 'sum',
+
             'energy_impact': 'sum',
+            'energy_consumption_mj': 'sum',
+
             'water_impact': 'sum',
-            'waste_generated_kg': 'sum'
+            'water_usage_liters': 'sum',
+
+            'waste_generated_kg': 'sum',
         }).reset_index()
         
         return total_impacts
