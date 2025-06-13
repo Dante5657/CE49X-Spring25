@@ -71,12 +71,14 @@ class LCACalculator:
                 'transport_distance_km': row['transport_distance_km'],
                 'waste_generated_kg': row['waste_generated_kg'],
 
-                # Calculated impacts using impact factors
+                # Calculated impacts using impact factors (Because sample_data is too similar)
                 'carbon_impact': quantity * stage_factors.get('carbon_impact', 0),
 
-                'energy_impact': quantity * stage_factors.get('energy_impact', 0),
+                'energy_impact': quantity * stage_factors.get('energy_impact', 0)
+                + convert_units(row['energy_consumption_kwh'], from_unit='kWh', to_unit='MJ'),
 
-                'water_impact': quantity * stage_factors.get('water_impact', 0),
+                'water_impact': quantity * stage_factors.get('water_impact', 0)
+                + convert_units(row['water_usage_liters'], from_unit='m3', to_unit='L'),
 
                 # End-of-life management data
                 'recycling_rate': row['recycling_rate'],
